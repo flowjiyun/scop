@@ -3,6 +3,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+void OnFrameBufferSizeChange(GLFWwindow* window, int width, int height) {
+    std::cout << "Frame buffer size changed : " << width << " x " << height << std::endl;
+    glViewport(0, 0, width, height);
+}
+
 int main(void) {
     std::cout << "hello word" << std::endl;
     if (!glfwInit()) {
@@ -35,6 +40,11 @@ int main(void) {
     }
     auto glVersion = glGetString(GL_VERSION);
     std::cout << "opengl version: " << glVersion << std::endl;
+
+    // init viewport
+    OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
+    
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents(); 
     }
