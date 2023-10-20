@@ -14,6 +14,11 @@ void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
 }
 
+void Render() {
+    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
 int main(void) {
     std::cout << "hello word" << std::endl;
     if (!glfwInit()) {
@@ -50,9 +55,12 @@ int main(void) {
     // init viewport
     OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
-    glfwSetKeyCallback(window, )
+    glfwSetKeyCallback(window, OnKeyEvent);
 
     while (!glfwWindowShouldClose(window)) {
+        Render();
+        // exchange front and back buffer
+        glfwSwapBuffers(window);
         glfwPollEvents(); 
     }
     glfwTerminate();
