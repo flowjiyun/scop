@@ -3,6 +3,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "common.h"
+#include "shader.h"
+
 void OnFrameBufferSizeChange(GLFWwindow* window, int width, int height) {
     std::cout << "Frame buffer size changed : " << width << " x " << height << std::endl;
     glViewport(0, 0, width, height);
@@ -20,7 +23,6 @@ void Render() {
 }
 
 int main(void) {
-    std::cout << "hello word" << std::endl;
     if (!glfwInit()) {
         const char *description;
         glfwGetError(&description);
@@ -56,6 +58,11 @@ int main(void) {
     OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
     glfwSetKeyCallback(window, OnKeyEvent);
+
+    auto vertexShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
+    auto fragmentShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
+    std::cout << "vertex shader id : " << vertexShader->Get() << std::endl;
+    std::cout << "fragment shader id : " << fragmentShader->Get() << std::endl;
 
     while (!glfwWindowShouldClose(window)) {
         Render();
