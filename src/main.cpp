@@ -1,11 +1,4 @@
-#include <iostream>
-#include <string>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include "common.h"
-#include "shader.h"
-#include "program.h"
+#include "context.h"
 
 void OnFrameBufferSizeChange(GLFWwindow* window, int width, int height) {
     std::cout << "Frame buffer size changed : " << width << " x " << height << std::endl;
@@ -16,11 +9,6 @@ void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
-}
-
-void Render() {
-    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 int main(void) {
@@ -55,24 +43,27 @@ int main(void) {
     auto glVersion = glGetString(GL_VERSION);
     std::cout << "opengl version: " << glVersion << std::endl;
 
+    ContextUPtr context = Context::Create();
+    if (!context) {
+        std::cout << "fail to init context" << std::endl;
+        glfwTerminate();
+        return 1;
+    }
+
     // init viewport
     OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+
     glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
     glfwSetKeyCallback(window, OnKeyEvent);
 
-    ShaderPtr vertexShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragmentShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
-    std::cout << "vertex shader id : " << vertexShader->Get() << std::endl;
-    std::cout << "fragment shader id : " << fragmentShader->Get() << std::endl;
 
-    ProgramUPtr program = Program::Create({vertexShader, fragmentShader});
-    std::cout << "program id : " << program->Get() << std::endl;
     while (!glfwWindowShouldClose(window)) {
-        Render();
         // exchange front and back buffer
+        context->Render();
         glfwSwapBuffers(window);
         glfwPollEvents(); 
     }
+    context.reset();
     glfwTerminate();
     return 0;
 }
