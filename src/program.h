@@ -11,7 +11,7 @@ class Program {
         uint32_t Get() const {return m_programId;}
     
     private:
-        Program() {}
+        Program() = default;
         bool Link(const std::vector<ShaderPtr>& shaders);
         uint32_t m_programId {0};
 };
