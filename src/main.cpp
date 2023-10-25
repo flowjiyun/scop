@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "shader.h"
+#include "program.h"
 
 void OnFrameBufferSizeChange(GLFWwindow* window, int width, int height) {
     std::cout << "Frame buffer size changed : " << width << " x " << height << std::endl;
@@ -59,11 +60,13 @@ int main(void) {
     glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
     glfwSetKeyCallback(window, OnKeyEvent);
 
-    auto vertexShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
-    auto fragmentShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
+    ShaderPtr vertexShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragmentShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
     std::cout << "vertex shader id : " << vertexShader->Get() << std::endl;
     std::cout << "fragment shader id : " << fragmentShader->Get() << std::endl;
 
+    ProgramUPtr program = Program::Create({vertexShader, fragmentShader});
+    std::cout << "program id : " << program->Get() << std::endl;
     while (!glfwWindowShouldClose(window)) {
         Render();
         // exchange front and back buffer
