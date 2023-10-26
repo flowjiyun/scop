@@ -10,12 +10,22 @@ ContextUPtr Context::Create() {
 
 void Context::Render() {
     glClear(GL_COLOR_BUFFER_BIT);
-
-    glUseProgram(m_program->Get());
-    glDrawArrays(GL_POINTS, 0, 1);
+    m_program->Use();
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 bool Context::Init() {
+    float vertices[] = {
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f, // top left
+    };
+
+    uint32_t indices[] = { // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3, // second triangle
+    };
     //init shaders
     ShaderPtr vertexShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
     ShaderPtr fragmentShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
@@ -32,13 +42,15 @@ bool Context::Init() {
         std::cout << "fail to init context" << std::endl;
         return false;
     }
-    std::cout << "program id : " << m_program->Get() << std::endl; 
+    std::cout << "program id : " << m_program->Get() << std::endl;
+
+    m_vertexLayout = VertexLayout::Create();
+    m_vertextBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(vertices));
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+    m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(indices));
+
 
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-
-    uint32_t vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
 
     return true;
 }

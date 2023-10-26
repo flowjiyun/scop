@@ -1,8 +1,9 @@
 #pragma once
 
 #include "common.h"
-#include "shader.h"
 #include "program.h"
+#include "buffer.h"
+#include "vertex_layout.h"
 
 CLASS_PTR(Context)
 class Context {
@@ -14,4 +15,7 @@ class Context {
         Context() = default;
         bool Init();
         ProgramUPtr m_program;
+        VertexLayoutUPtr m_vertexLayout;
+        BufferUPtr m_vertextBuffer;
+        BufferUPtr m_indexBuffer;
 };
