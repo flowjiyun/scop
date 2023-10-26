@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 #include <optional>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
