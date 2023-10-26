@@ -42,6 +42,11 @@ int main(void) {
     }
     auto glVersion = glGetString(GL_VERSION);
     std::cout << "opengl version: " << glVersion << std::endl;
+    // init viewport
+    OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
+    glfwSetKeyCallback(window, OnKeyEvent);
 
     ContextUPtr context = Context::Create();
     if (!context) {
@@ -50,18 +55,11 @@ int main(void) {
         return 1;
     }
 
-    // init viewport
-    OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
-    glfwSetKeyCallback(window, OnKeyEvent);
-
-
     while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents(); 
         // exchange front and back buffer
         context->Render();
         glfwSwapBuffers(window);
-        glfwPollEvents(); 
     }
     context.reset();
     glfwTerminate();
