@@ -9,6 +9,7 @@ class Program {
         static ProgramUPtr Create(const std::vector<ShaderPtr>& shaders);
         ~Program();
         uint32_t Get() const {return m_programId;}
+        void Use() const;
     
     private:
         Program() = default;

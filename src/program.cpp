@@ -14,6 +14,10 @@ Program::~Program() {
     }
 }
 
+void Program::Use() const {
+    glUseProgram(m_programId);
+}
+
 bool Program::Link(const std::vector<ShaderPtr>& shaders) {
     m_programId = glCreateProgram();
     for (auto& shader : shaders) {
