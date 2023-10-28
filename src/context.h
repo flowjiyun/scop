@@ -18,4 +18,5 @@ class Context {
         VertexLayoutUPtr m_vertexLayout;
         BufferUPtr m_vertextBuffer;
         BufferUPtr m_indexBuffer;
+        uint32_t m_texture;
 };
