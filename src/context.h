@@ -20,4 +20,5 @@ class Context {
         BufferUPtr m_vertextBuffer;
         BufferUPtr m_indexBuffer;
         TextureUPtr m_texture;
+        TextureUPtr m_texture2;
 };
