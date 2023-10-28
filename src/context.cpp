@@ -10,8 +10,16 @@ ContextUPtr Context::Create() {
 
 void Context::Render() {
     glClear(GL_COLOR_BUFFER_BIT);
+    static float time = 0.0f;
+    float t = sinf(time) * 0.5f + 0.5f;
+    auto loc = glGetUniformLocation(m_program->Get(), "color");
     m_program->Use();
+    glUniform4f(loc, t*t, 2.0f*t*(1.0f-t), (1.0f-t)*(1.0f-t), 1.0f);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    time += 0.016f;
+    // m_program->Use();
+    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 bool Context::Init() {
