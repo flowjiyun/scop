@@ -18,6 +18,15 @@ void Program::Use() const {
     glUseProgram(m_programId);
 }
 
+void Program::SetUniform(const std::string& name, int value) {
+    glUniform1i(glGetUniformLocation(m_programId, name.c_str()), value);
+}
+
+void Program::SetUniform(const std::string& name, const glm::mat4& value) {
+    auto transformLoc = glGetUniformLocation(m_programId, name.c_str());
+    glUniformMatrix4fv(transformLoc, 1, false, glm::value_ptr(value)); 
+}
+
 bool Program::Link(const std::vector<ShaderPtr>& shaders) {
     m_programId = glCreateProgram();
     for (auto& shader : shaders) {

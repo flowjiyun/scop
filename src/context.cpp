@@ -114,8 +114,8 @@ bool Context::Init() {
     glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
 
     m_program->Use();
-    glUniform1i(glGetUniformLocation(m_program->Get(), "tex"), 0);
-    glUniform1i(glGetUniformLocation(m_program->Get(), "tex2"), 1);
+    m_program->SetUniform("tex", 0);
+    m_program->SetUniform("tex2", 1);
 
     // x축으로 -55도 회전
     // local coordinate -> world coordinate
@@ -125,7 +125,6 @@ bool Context::Init() {
     // 종횡비 4:3, 세로화각 45도의 원근 투영
     auto projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 10.0f);
     auto transform = projection * view * model;
-    auto transformLoc = glGetUniformLocation(m_program->Get(), "transform");
-    glUniformMatrix4fv(transformLoc, 1, false, glm::value_ptr(transform));
+    m_program->SetUniform("transform", transform);
     return true;
 }
