@@ -28,6 +28,7 @@ void Context::Render() {
         (float)m_windowWidth / (float)m_windowHeight, 0.01f, 20.0f);
     //Set camera
     //Manipulate camera with keyboard, mouse
+
     auto view = glm::lookAt(m_cameraPos,
                             m_cameraPos + m_cameraFront,
                             m_cameraUp);
@@ -45,8 +46,14 @@ void Context::Render() {
 }
 
 void Context::ProcessInput(GLFWwindow* window) {
+    if (!m_isCameraControlEnabled) {
+        return;
+    }
     // TODO: seperate to camera class
     const float cameraSpeed = 0.5f;
+    m_cameraFront = glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
+                    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                    glm::vec4(0.0f, 0.0f, -0.1f, 0.0f);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         m_cameraPos += cameraSpeed * m_cameraFront;
     }
@@ -73,6 +80,35 @@ void Context::Reshape(uint32_t width, uint32_t height) {
     m_windowWidth = width;
     m_windowHeight = height;
     glViewport(0, 0, m_windowWidth, m_windowHeight);
+}
+
+void Context::MoveMouse(double x, double y) {
+    if (!m_isCameraControlEnabled) {
+        return;
+    }
+    auto curMousePos = glm::vec2(static_cast<float>(x), static_cast<float>(y));
+    auto deltaPos = curMousePos - m_mousePos;
+
+    const float cameraRotationSpeed = 0.5f;
+    m_cameraYaw -= deltaPos.x * cameraRotationSpeed;
+    m_cameraPitch -= deltaPos.y * cameraRotationSpeed;
+    if (m_cameraYaw < 0.0f) m_cameraYaw += 360.0f;
+    if (m_cameraYaw > 360.0f) m_cameraYaw -= 360.0f;
+    if (m_cameraPitch > 89.0f) m_cameraPitch = 89.0f;
+    if (m_cameraPitch < -89.0f) m_cameraPitch = -89.0f;
+
+    m_mousePos = curMousePos;
+}
+
+void Context::ClickMouseButton(int button, int action, double x, double y) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            m_mousePos = glm::vec2(static_cast<float>(x), static_cast<float>(y));
+            m_isCameraControlEnabled = true;
+        } else if (action == GLFW_RELEASE) {
+            m_isCameraControlEnabled = false;
+        }
+    }
 }
 
 bool Context::Init() {

@@ -12,6 +12,18 @@ void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
 }
 
+void OnCursorPos(GLFWwindow* window, double x, double y) {
+    auto context = reinterpret_cast<Context*>(glfwGetWindowUserPointer(window));
+    context->MoveMouse(x, y);
+}
+
+void OnMouseButton(GLFWwindow* window, int button, int action, int mod) {
+    auto context = reinterpret_cast<Context*>(glfwGetWindowUserPointer(window));
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    context->ClickMouseButton(button, action, x, y);
+}
+
 int main(void) {
     if (!glfwInit()) {
         const char *description;
@@ -55,6 +67,8 @@ int main(void) {
     OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
     glfwSetKeyCallback(window, OnKeyEvent);
+    glfwSetCursorPosCallback(window, OnCursorPos);
+    glfwSetMouseButtonCallback(window, OnMouseButton);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents(); 
