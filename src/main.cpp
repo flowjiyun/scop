@@ -2,7 +2,8 @@
 
 void OnFrameBufferSizeChange(GLFWwindow* window, int width, int height) {
     std::cout << "Frame buffer size changed : " << width << " x " << height << std::endl;
-    glViewport(0, 0, width, height);
+    auto context = reinterpret_cast<Context*>(glfwGetWindowUserPointer(window));
+    context->Reshape(width, height);
 }
 
 void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -42,11 +43,6 @@ int main(void) {
     }
     auto glVersion = glGetString(GL_VERSION);
     std::cout << "opengl version: " << glVersion << std::endl;
-    // init viewport
-    OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
-    glfwSetKeyCallback(window, OnKeyEvent);
 
     ContextUPtr context = Context::Create();
     if (!context) {
@@ -54,10 +50,16 @@ int main(void) {
         glfwTerminate();
         return 1;
     }
+    glfwSetWindowUserPointer(window, context.get());
+    // init viewport
+    OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glfwSetFramebufferSizeCallback(window, OnFrameBufferSizeChange);
+    glfwSetKeyCallback(window, OnKeyEvent);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents(); 
         // exchange front and back buffer
+        context->ProcessInput(window);
         context->Render();
         glfwSwapBuffers(window);
     }

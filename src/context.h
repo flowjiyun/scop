@@ -11,6 +11,8 @@ class Context {
     public:
         static ContextUPtr Create();
         void Render();
+        void ProcessInput(GLFWwindow* window);
+        void Reshape(uint32_t width, uint32_t height);
 
     private:
         Context() = default;
@@ -21,4 +23,11 @@ class Context {
         BufferUPtr m_indexBuffer;
         TextureUPtr m_texture;
         TextureUPtr m_texture2;
+        //camera
+        glm::vec3 m_cameraPos {glm::vec3(0.0f, 0.0f, 3.0f)};
+        glm::vec3 m_cameraFront {glm::vec3(0.0f, 0.0f, -1.0f)};
+        glm::vec3 m_cameraUp {glm::vec3(0.0f, 1.0f, 0.0f)};
+        //window size
+        uint32_t m_windowWidth {WINDOW_WIDTH};
+        uint32_t m_windowHeight {WINDOW_HEIGHT};
 };
