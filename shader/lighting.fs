@@ -12,7 +12,7 @@ uniform vec3 lightPosition;
 
 void main() {
     vec3 ambient = ambientStrength * lightColor;
-    vec3 lightDir = normalize(lightPos - position);
+    vec3 lightDir = normalize(lightPosition - position);
     vec3 pixelNorm = normalize(normal);
     vec3 diffuse = max(dot(lightDir, pixelNorm), 0.0) * lightColor;
     vec3 result = (ambient + diffuse) * objectColor;

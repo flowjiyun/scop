@@ -42,4 +42,15 @@ class Context {
         uint32_t m_windowWidth {WINDOW_WIDTH};
         uint32_t m_windowHeight {WINDOW_HEIGHT};
         glm::vec4 m_clearColor {glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
+
+        // object
+        glm::vec3 m_objectColor {glm::vec3(1.0f, 0.5f, 0.0f)};
+
+        // light
+        glm::vec3 m_lightPos {glm::vec3(3.0f, 3.0f, 3.0f)};
+        glm::vec3 m_lightColor {glm::vec3(1.0f, 1.0f, 1.0f)};
+        float m_ambientStrength {0.1f};
+
+        //animation
+        bool m_isAnimationEnabled {true};
 };

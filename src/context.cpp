@@ -25,6 +25,13 @@ void Context::Render() {
             m_cameraPitch = 0.0f;
             m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
         }
+        if (ImGui::CollapsingHeader("light")) {
+            ImGui::DragFloat3("light pos", glm::value_ptr(m_lightPos), 0.01f);
+            ImGui::ColorEdit3("light color", glm::value_ptr(m_lightColor));
+            ImGui::ColorEdit3("object color", glm::value_ptr(m_objectColor));
+            ImGui::SliderFloat("ambient strength", &m_ambientStrength, 0.0f, 1.0f);
+        }
+        ImGui::Checkbox("animation", &m_isAnimationEnabled);
     }
     ImGui::End();
 
@@ -54,13 +61,29 @@ void Context::Render() {
                             m_cameraPos + m_cameraFront,
                             m_cameraUp);
 
+    auto lightModelTransform =
+    glm::translate(glm::mat4(1.0), m_lightPos) *
+    glm::scale(glm::mat4(1.0), glm::vec3(0.1f)); 
+    m_program->SetUniform("lightPosition", m_lightPos);
+    m_program->SetUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    m_program->SetUniform("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    m_program->SetUniform("ambientStrength", 1.0f);
+    m_program->SetUniform("transform", projection * view * lightModelTransform);
+    m_program->SetUniform("modelTransform", lightModelTransform);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+    m_program->SetUniform("lightPosition", m_lightPos);
+    m_program->SetUniform("lightColor", m_lightColor);
+    m_program->SetUniform("objectColor", m_objectColor);
+    m_program->SetUniform("ambientStrength", m_ambientStrength);
+
     for (size_t i = 0; i < cubePositions.size(); ++i) {
         glm::vec3& pos = cubePositions[i];
-        auto model = glm::translate(glm::mat4(1.0), pos);
-        model = glm::rotate(model, 
-            glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i), 
-            glm::vec3(1.0f, 0.5f, 0.0f));
+        auto model = glm::translate(glm::mat4(1.0), pos); 
+        auto angle = glm::radians((m_isAnimationEnabled ? (float)glfwGetTime() : 0.0f) * 120.0f + 20.0f * (float)i);
+        model = glm::rotate(model, angle, glm::vec3(1.0f, 0.5f, 0.0f));
         auto transform = projection * view * model;
+        m_program->SetUniform("modelTransform", model);
         m_program->SetUniform("transform", transform);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     }
@@ -130,38 +153,37 @@ void Context::ClickMouseButton(int button, int action, double x, double y) {
 }
 
 bool Context::Init() {
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+    float vertices[] = { // pos.xyz, normal.xyz, texcoord.uv
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
 
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
 
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
-        };
-
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
+    };
     uint32_t indices[] = {
         0,  2,  1,  2,  0,  3,
         4,  5,  6,  6,  7,  4,
@@ -171,8 +193,8 @@ bool Context::Init() {
         20, 22, 21, 22, 20, 23,
     };
     //init shaders
-    ShaderPtr vertexShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragmentShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
+    ShaderPtr vertexShader = Shader::CreateFromFile("./shader/lighting.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragmentShader = Shader::CreateFromFile("./shader/lighting.fs", GL_FRAGMENT_SHADER);
     if (!vertexShader || !fragmentShader) {
         std::cout << "fail to init context" << std::endl;
         return false;
@@ -191,8 +213,9 @@ bool Context::Init() {
     //generate vertext Array & buffers in gpu memory
     m_vertexLayout = VertexLayout::Create();
     m_vertextBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(vertices));
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
+    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 3);
+    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 6);
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(indices));
 
     glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
