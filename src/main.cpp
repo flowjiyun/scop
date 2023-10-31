@@ -28,6 +28,14 @@ void OnMouseButton(GLFWwindow* window, int button, int action, int modifier) {
     context->ClickMouseButton(button, action, x, y);
 }
 
+void OnCharEvent(GLFWwindow* window, unsigned int ch) {
+    ImGui_ImplGlfw_CharCallback(window, ch);
+}
+
+void OnScroll(GLFWwindow* window, double xoffset, double yoffset) {
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+}
+
 int main(void) {
     if (!glfwInit()) {
         const char *description;
@@ -85,6 +93,8 @@ int main(void) {
     glfwSetKeyCallback(window, OnKeyEvent);
     glfwSetCursorPosCallback(window, OnCursorPos);
     glfwSetMouseButtonCallback(window, OnMouseButton);
+    glfwSetCharCallback(window, OnCharEvent);
+    glfwSetScrollCallback(window, OnScroll);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

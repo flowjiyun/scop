@@ -11,8 +11,20 @@ ContextUPtr Context::Create() {
 }
 
 void Context::Render() {
-    if (ImGui::Begin("My First ImGui Window")) {
-        ImGui::Text("first text...");
+    if (ImGui::Begin("UI WINDOW")) {
+        if (ImGui::ColorEdit4("Edit Clear Color", glm::value_ptr(m_clearColor))) {
+            glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+        }
+        ImGui::Separator();
+        ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
+        ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
+        ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
+        ImGui::Separator();
+        if (ImGui::Button("reset camera")) {
+            m_cameraYaw = 0.0f;
+            m_cameraPitch = 0.0f;
+            m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+        }
     }
     ImGui::End();
 
@@ -34,6 +46,9 @@ void Context::Render() {
         (float)m_windowWidth / (float)m_windowHeight, 0.01f, 20.0f);
     //Set camera
     //Manipulate camera with keyboard, mouse
+    m_cameraFront = glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
+                    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                    glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
     auto view = glm::lookAt(m_cameraPos,
                             m_cameraPos + m_cameraFront,
@@ -57,9 +72,6 @@ void Context::ProcessInput(GLFWwindow* window) {
     }
     // TODO: seperate to camera class
     const float cameraSpeed = 0.5f;
-    m_cameraFront = glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
-                    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
-                    glm::vec4(0.0f, 0.0f, -0.1f, 0.0f);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         m_cameraPos += cameraSpeed * m_cameraFront;
     }
@@ -183,7 +195,7 @@ bool Context::Init() {
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(indices));
 
-    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     
     //image loading
     ImageUPtr image = Image::Load("./image/container.jpeg");

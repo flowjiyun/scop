@@ -41,4 +41,5 @@ class Context {
         //window size
         uint32_t m_windowWidth {WINDOW_WIDTH};
         uint32_t m_windowHeight {WINDOW_HEIGHT};
+        glm::vec4 m_clearColor {glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
 };
