@@ -8,6 +8,18 @@ ProgramUPtr Program::Create(const std::vector<ShaderPtr>& shaders) {
     return std::move(program);
 }
 
+ProgramUPtr Program::Create(
+                            const std::string& vertexShaderFileName,
+                            const std::string& fragmentShaderFileName
+) {
+    ShaderPtr vs = Shader::CreateFromFile(vertexShaderFileName, GL_VERTEX_SHADER);
+    ShaderPtr fs = Shader::CreateFromFile(fragmentShaderFileName, GL_FRAGMENT_SHADER);
+    if (!vs || !fs) {
+        return nullptr;
+    }
+    return std::move(Create({vs, fs}));
+}
+
 Program::~Program() {
     if (m_programId) {
         glDeleteProgram(m_programId);
@@ -29,6 +41,11 @@ void Program::SetUniform(const std::string& name, float value) {
 void Program::SetUniform(const std::string& name, const glm::vec3& value) {
     auto transformLoc = glGetUniformLocation(m_programId, name.c_str());
     glUniform3fv(transformLoc, 1, glm::value_ptr(value));
+}
+
+void Program::SetUniform(const std::string& name, const glm::vec4& value) {
+    auto transformLoc = glGetUniformLocation(m_programId, name.c_str());
+    glUniform4fv(transformLoc, 1, glm::value_ptr(value));
 }
 
 void Program::SetUniform(const std::string& name, const glm::mat4& value) {
