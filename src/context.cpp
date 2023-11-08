@@ -33,9 +33,6 @@ void Context::Render() {
         }
  
         if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::ColorEdit3("m.ambient", glm::value_ptr(m_material.ambient));
-            ImGui::ColorEdit3("m.diffuse", glm::value_ptr(m_material.diffuse));
-            ImGui::ColorEdit3("m.specular", glm::value_ptr(m_material.specular));
             ImGui::DragFloat("m.shininess", &m_material.shininess, 1.0f, 1.0f, 256.0f);
         }
         ImGui::Checkbox("animation", &m_isAnimationEnabled);
@@ -70,23 +67,26 @@ void Context::Render() {
 
     auto lightModelTransform =
     glm::translate(glm::mat4(1.0), m_light.position) *
-    glm::scale(glm::mat4(1.0), glm::vec3(0.1f)); 
-    m_program->SetUniform("light.position", m_light.position);
-    m_program->SetUniform("light.ambient", m_light.diffuse);
-    m_program->SetUniform("material.ambient", m_light.diffuse);
-    m_program->SetUniform("transform", projection * view * lightModelTransform);
-    m_program->SetUniform("modelTransform", lightModelTransform);
+    glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
+    m_simpleProgram->Use();
+    m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
+    m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
+    m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", m_light.position);
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
-    m_program->SetUniform("material.ambient", m_material.ambient);
-    m_program->SetUniform("material.diffuse", m_material.diffuse);
-    m_program->SetUniform("material.specular", m_material.specular);
+    m_program->SetUniform("material.diffuse", 0);
+    m_program->SetUniform("material.specular", 1);
     m_program->SetUniform("material.shininess", m_material.shininess);
+
+    glActiveTexture(GL_TEXTURE0);
+    m_material.diffuse->Bind();
+    glActiveTexture(GL_TEXTURE1);
+    m_material.specular->Bind();
 
     for (size_t i = 0; i < cubePositions.size(); ++i) {
         glm::vec3& pos = cubePositions[i];
@@ -203,23 +203,20 @@ bool Context::Init() {
         16, 17, 18, 18, 19, 16,
         20, 22, 21, 22, 20, 23,
     };
-    //init shaders
-    ShaderPtr vertexShader = Shader::CreateFromFile("./shader/lighting.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragmentShader = Shader::CreateFromFile("./shader/lighting.fs", GL_FRAGMENT_SHADER);
-    if (!vertexShader || !fragmentShader) {
+
+    //init program with shaders
+    m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
+    if (!m_simpleProgram) {
         std::cout << "fail to init context" << std::endl;
         return false;
     }
-    std::cout << "vertex shader id : " << vertexShader->Get() << std::endl;
-    std::cout << "fragment shader id : " << fragmentShader->Get() << std::endl;
-
-    //init program with shaders
-    m_program = Program::Create({vertexShader, fragmentShader});
+    m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program) {
         std::cout << "fail to init context" << std::endl;
         return false;
     }
     std::cout << "program id : " << m_program->Get() << std::endl;
+    std::cout << "simple program id : " << m_simpleProgram->Get() << std::endl;
 
     //generate vertext Array & buffers in gpu memory
     m_vertexLayout = VertexLayout::Create();
@@ -247,6 +244,9 @@ bool Context::Init() {
     // generate texture in gpu memory
     m_texture = Texture::CreateFromImage(image.get());
     m_texture2 = Texture::CreateFromImage(image2.get());
+
+    m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
+    m_material.specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture->Get());
