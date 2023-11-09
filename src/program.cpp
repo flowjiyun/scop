@@ -38,6 +38,11 @@ void Program::SetUniform(const std::string& name, float value) {
     glUniform1f(glGetUniformLocation(m_programId, name.c_str()), value);
 }
 
+void Program::SetUniform(const std::string& name, const glm::vec2& value) {
+    auto transformLoc = glGetUniformLocation(m_programId, name.c_str());
+    glUniform2fv(transformLoc, 1, glm::value_ptr(value));
+}
+
 void Program::SetUniform(const std::string& name, const glm::vec3& value) {
     auto transformLoc = glGetUniformLocation(m_programId, name.c_str());
     glUniform3fv(transformLoc, 1, glm::value_ptr(value));
