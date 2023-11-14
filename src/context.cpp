@@ -42,18 +42,6 @@ void Context::Render() {
     }
     ImGui::End();
 
-    std::vector<glm::vec3> cubePositions = {
-        glm::vec3( 0.0f, 0.0f, 0.0f),
-        glm::vec3( 2.0f, 5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f, 3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f, 2.0f, -2.5f),
-        glm::vec3( 1.5f, 0.2f, -1.5f),
-        glm::vec3(-1.3f, 1.0f, -1.5f),
-    };
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     auto projection = glm::perspective(glm::radians(45.0f), 
@@ -100,17 +88,11 @@ void Context::Render() {
     glActiveTexture(GL_TEXTURE1);
     m_material.specular->Bind();
 
-    for (size_t i = 0; i < cubePositions.size(); ++i) {
-        glm::vec3& pos = cubePositions[i];
-        auto model = glm::translate(glm::mat4(1.0), pos); 
-        auto angle = glm::radians((m_isAnimationEnabled ? (float)glfwGetTime() : 0.0f) * 120.0f + 20.0f * (float)i);
-        model = glm::rotate(model, angle, glm::vec3(1.0f, 0.5f, 0.0f));
-        auto transform = projection * view * model;
-        m_program->SetUniform("modelTransform", model);
-        m_program->SetUniform("transform", transform);
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        m_box->Draw();
-    }
+    auto modelTransform = glm::mat4(1.0f);
+    auto transform = projection * view * modelTransform;
+    m_program->SetUniform("modelTransform", modelTransform);
+    m_program->SetUniform("transform", transform);
+    m_model->Draw();
 }
 
 void Context::ProcessInput(GLFWwindow* window) {
@@ -220,6 +202,14 @@ bool Context::Init() {
 
     m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
     m_material.specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
+
+    m_material.diffuse = Texture::CreateFromImage(
+    Image::CreateSingleColorImage(4, 4,
+        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)).get());
+
+    m_material.specular = Texture::CreateFromImage(
+    Image::CreateSingleColorImage(4, 4,
+        glm::vec4(0.5f, 0.5f, 0.5f, 1.0f)).get());
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture->Get());
