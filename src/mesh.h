@@ -3,7 +3,24 @@
 #include "common.h"
 #include "buffer.h"
 #include "vertex_layout.h"
+#include "texture.h"
+#include "program.h"
 
+CLASS_PTR(Material);
+class Material {
+public:
+    static MaterialUPtr Create() {
+        return MaterialUPtr(new Material());
+    }
+    TexturePtr diffuse;
+    TexturePtr specular;
+    float shininess { 32.0f };
+
+    void SetToProgram(const Program* program) const;
+
+private:
+    Material() {}
+};
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -25,7 +42,10 @@ public:
   BufferPtr GetVertexBuffer() const { return m_vertexBuffer; }
   BufferPtr GetIndexBuffer() const { return m_indexBuffer; }
 
-  void Draw() const;
+  void SetMaterial(MaterialPtr material) {m_material = material;}
+  MaterialPtr GetMaterial() const {return m_material;}
+
+  void Draw(const Program* program) const;
 
 private:
   Mesh() {}
@@ -38,4 +58,5 @@ private:
   VertexLayoutUPtr m_vertexLayout;
   BufferPtr m_vertexBuffer;
   BufferPtr m_indexBuffer;
+  MaterialPtr m_material;
 };

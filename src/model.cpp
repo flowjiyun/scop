@@ -8,15 +8,34 @@ ModelUPtr Model::Load(const std::string& filename) {
 }
 
 bool Model::LoadByAssimp(const std::string& filename) {
-  Assimp::Importer importer;
-  auto scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+    Assimp::Importer importer;
+    auto scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
     return false;
-  }
+    }
+    auto dirname = filename.substr(0, filename.find_last_of("/"));
+    auto LoadTexture = [&](aiMaterial* material, aiTextureType type) -> TexturePtr {
+        if (material->GetTextureCount(type) <= 0)
+            return nullptr;
+        aiString filepath;
+        material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
+        auto image = Image::Load(fmt::format("{}/{}", dirname, filepath.C_Str()));
+        if (!image)
+            return nullptr;
+        return Texture::CreateFromImage(image.get());
+    };
+    std::cout << "materail count : " << scene->mNumMaterials << std::endl;
+    for (uint32_t i = 0; i < scene->mNumMaterials; i++) {
+        auto material = scene->mMaterials[i];
+        auto glMaterial = Material::Create();
+        glMaterial->diffuse = LoadTexture(material, aiTextureType_DIFFUSE);
+        glMaterial->specular = LoadTexture(material, aiTextureType_SPECULAR);
+        m_materials.push_back(std::move(glMaterial));
+    }
 
-  ProcessNode(scene->mRootNode, scene);
-  return true;
+    ProcessNode(scene->mRootNode, scene);
+    return true;
 }
 
 void Model::ProcessNode(aiNode* node, const aiScene* scene) {
@@ -50,11 +69,14 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
   }
 
   auto glMesh = Mesh::Create(vertices, indices, GL_TRIANGLES);
+  if (mesh->mMaterialIndex >= 0) {
+    glMesh->SetMaterial(m_materials[mesh->mMaterialIndex]);
+  }
   m_meshes.push_back(std::move(glMesh));
 }
 
-void Model::Draw() const {
+void Model::Draw(const Program* program) const {
   for (auto& mesh: m_meshes) {
-    mesh->Draw();
+    mesh->Draw(program);
   }
 }

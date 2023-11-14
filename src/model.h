@@ -14,7 +14,7 @@ public:
 
     int GetMeshCount() const { return (int)m_meshes.size(); }
     MeshPtr GetMesh(int index) const { return m_meshes[index]; }
-    void Draw() const;
+    void Draw(const Program* program) const;
 
 private:
     Model() {}
@@ -23,4 +23,5 @@ private:
     void ProcessNode(aiNode* node, const aiScene* scene);
         
     std::vector<MeshPtr> m_meshes;
+    std::vector<MaterialPtr> m_materials;
 };
