@@ -177,6 +177,11 @@ void Context::ClickMouseButton(int button, int action, double x, double y) {
 }
 
 bool Context::Init() {
+    // create model
+    m_model = Model::Load("./model/backpack.obj");
+    if (!m_model) {
+        return false;
+    }
     // create box mesh
     m_box = Mesh::CreateBox();
 
