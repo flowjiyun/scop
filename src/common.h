@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <spdlog/spdlog.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
